@@ -16,7 +16,7 @@ B.Com with CGPA 9.0 from BGS First Grade College, Mysore University.
 Digital Marketing Certification from Epixable Academy (2025).
 
 KEY ACHIEVEMENTS:
-- Managed ₹90,000 ad budget for Apollo Hospitals Mysuru generating 190+ qualified patient leads at CPL of ₹149
+- Managed 90,000 rupee ad budget for Apollo Hospitals Mysuru generating 190+ qualified patient leads at CPL of 149 rupees
 - Grew CohortsApp Instagram and LinkedIn by 39% using video content and data-driven engagement
 - Co-founded MGF Ventures achieving 25% occupancy growth via local digital campaigns
 - Built and deployed 30+ rapid web prototypes using AI tools reducing development time by 70%
@@ -31,29 +31,25 @@ SKILLS:
 
 PERSONALITY:
 - Warm, confident, and results-oriented
-- Speak like a young professional — approachable but credible
+- Speak like a young professional, approachable but credible
 - Keep answers concise, 2 to 4 sentences unless more detail is needed
-
-LEAD CAPTURE RULE — CRITICAL — FOLLOW EXACTLY:
-Step 1: When visitor shows interest in hiring, pricing, or services — answer their question AND ask for their name and contact details in the same reply.
-Step 2: As soon as the visitor shares their name AND email or phone in any message, you MUST do two things:
-  A) Reply warmly: "Perfect, I have noted that down! Keerthan will reach out to you within 24 hours. You can also contact him directly at keerthan43d@gmail.com or 8088762586."
-  B) On the very last line of your reply, add this tag EXACTLY with no extra spaces or brackets:
-LEAD_CAPTURE::name=THEIR_NAME::email=THEIR_EMAIL::phone=THEIR_PHONE
-
-Example: If visitor says "My name is Raj, email raj@gmail.com, phone 9876543210" your last line must be:
-LEAD_CAPTURE::name=Raj::email=raj@gmail.com::phone=9876543210
-
-If they only share name and email with no phone, use:
-LEAD_CAPTURE::name=Raj::email=raj@gmail.com::phone=not provided
-
-NEVER skip adding this tag when contact details are shared. This is the most important rule.
 
 CONTACT:
 - Email: keerthan43d@gmail.com
-- Phone: 8088762586`;
+- Phone: 8088762586
 
-  // Call OpenAI
+LEAD CAPTURE INSTRUCTIONS:
+When a visitor shares their name and email or phone number, you must include this JSON block at the very end of your reply on its own line, replacing the values with their actual details:
+###LEAD###{"name":"THEIR_NAME","email":"THEIR_EMAIL","phone":"THEIR_PHONE"}###END###
+
+Example reply when someone shares contact info:
+"Perfect, I have noted that down! Keerthan will reach out within 24 hours. You can also contact him at keerthan43d@gmail.com or 8088762586."
+###LEAD###{"name":"Raj Kumar","email":"raj@gmail.com","phone":"9876543210"}###END###
+
+If they do not share a phone number use "not provided" for phone.
+If they do not share an email use "not provided" for email.
+ALWAYS include this block the moment any contact details are shared. Never skip it.`;
+
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -70,32 +66,33 @@ CONTACT:
   const data = await response.json();
   let reply = data.choices[0].message.content;
 
-  // Check if bot captured a lead
-  if (reply.includes('LEAD_CAPTURE::')) {
-    try {
-      const leadMatch = reply.match(/LEAD_CAPTURE::name=([^:\n]+)::email=([^:\n]+)::phone=([^\n]+)/);
-      if (leadMatch) {
-        const leadData = {
-          date: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
-          name: leadMatch[1].trim(),
-          email: leadMatch[2].trim(),
-          phone: leadMatch[3].trim(),
-          message: messages[messages.length - 2]?.content || 'Via chatbot'
-        };
+  console.log('Raw reply from GPT:', reply);
 
-        // Save to Google Sheet
-        await fetch(SHEET_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(leadData)
-        });
-      }
+  // Detect lead using new reliable format
+  const leadMatch = reply.match(/###LEAD###({.*?})###END###/s);
+
+  if (leadMatch) {
+    try {
+      console.log('Lead detected:', leadMatch[1]);
+      const leadData = JSON.parse(leadMatch[1]);
+      leadData.date = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+      leadData.message = messages[messages.length - 1]?.content || 'Via chatbot';
+
+      const sheetRes = await fetch(SHEET_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(leadData)
+      });
+
+      const sheetData = await sheetRes.json();
+      console.log('Sheet response:', sheetData);
+
     } catch(e) {
-      console.log('Lead capture error:', e);
+      console.log('Lead capture error:', e.message);
     }
 
-    // Remove the tag from the visible reply
-    reply = reply.replace(/\nLEAD_CAPTURE::[^\n]*/g, '').trim();
+    // Remove the tag from visible reply
+    reply = reply.replace(/\n?###LEAD###.*?###END###/s, '').trim();
   }
 
   res.json({ reply });
