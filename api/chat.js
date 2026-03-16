@@ -7,7 +7,7 @@ export default async function handler(req, res) {
 
   const { messages } = req.body;
 
-  const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwDlEENBZVDe_iC8IxwEygSz1IHw3iKQUIkblkdntseyrC2qTPA2gcEAjvxvKaVsBz9-w/exec';
+  const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyaqpJrRMZ5-bHpqOTIDWH4R4YS_20FrgMCiPR4xsFxSSwyj4aIKHYfB_5c8jWeO4PnLQ/exec';
 
   const SYSTEM_PROMPT = `You are Keerthan D, a Digital Marketing Specialist and Growth Strategist based in Mysore, India.
 
@@ -68,7 +68,7 @@ ALWAYS include this block the moment any contact details are shared. Never skip 
 
   console.log('Raw reply from GPT:', reply);
 
-  // Detect lead using new reliable format
+  // Detect and save lead
   const leadMatch = reply.match(/###LEAD###({.*?})###END###/s);
 
   if (leadMatch) {
@@ -93,6 +93,21 @@ ALWAYS include this block the moment any contact details are shared. Never skip 
 
     // Remove the tag from visible reply
     reply = reply.replace(/\n?###LEAD###.*?###END###/s, '').trim();
+  }
+
+  // Log every conversation to Conversations sheet
+  try {
+    await fetch(SHEET_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        visitorMessage: messages[messages.length - 1]?.content || '',
+        botReply: reply,
+        date: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })
+      })
+    });
+  } catch(e) {
+    console.log('Conversation log error:', e.message);
   }
 
   res.json({ reply });
