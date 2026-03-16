@@ -7,7 +7,7 @@ export default async function handler(req, res) {
 
   const { messages } = req.body;
 
-  const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyoucROviqO8gwCni9cedJaFwIqmRrFtaJjr_7HSdkYGxXbNDNLSsqh_O59JnJQ-AYHcA/exec';
+  const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwDlEENBZVDe_iC8IxwEygSz1IHw3iKQUIkblkdntseyrC2qTPA2gcEAjvxvKaVsBz9-w/exec';
 
   const SYSTEM_PROMPT = `You are Keerthan D, a Digital Marketing Specialist and Growth Strategist based in Mysore, India.
 
