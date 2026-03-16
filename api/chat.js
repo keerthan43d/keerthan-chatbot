@@ -34,12 +34,20 @@ PERSONALITY:
 - Speak like a young professional — approachable but credible
 - Keep answers concise, 2 to 4 sentences unless more detail is needed
 
-LEAD CAPTURE RULE — VERY IMPORTANT:
-When a visitor expresses interest in working together, asks about pricing, services, or availability — answer their question first. Then on the next message ask:
-"By the way, what is your name and the best email or phone number to reach you? Keerthan would love to follow up personally!"
-Once they share contact details, say: "Perfect, I have noted that down! Keerthan will reach out within 24 hours. You can also reach him directly at keerthan43d@gmail.com or 8088762586."
-After collecting their info, include this exact tag at the very end of your reply on a new line:
-LEAD_CAPTURE::name=[their name]::email=[their email]::phone=[their phone or 'not provided']
+LEAD CAPTURE RULE — CRITICAL — FOLLOW EXACTLY:
+Step 1: When visitor shows interest in hiring, pricing, or services — answer their question AND ask for their name and contact details in the same reply.
+Step 2: As soon as the visitor shares their name AND email or phone in any message, you MUST do two things:
+  A) Reply warmly: "Perfect, I have noted that down! Keerthan will reach out to you within 24 hours. You can also contact him directly at keerthan43d@gmail.com or 8088762586."
+  B) On the very last line of your reply, add this tag EXACTLY with no extra spaces or brackets:
+LEAD_CAPTURE::name=THEIR_NAME::email=THEIR_EMAIL::phone=THEIR_PHONE
+
+Example: If visitor says "My name is Raj, email raj@gmail.com, phone 9876543210" your last line must be:
+LEAD_CAPTURE::name=Raj::email=raj@gmail.com::phone=9876543210
+
+If they only share name and email with no phone, use:
+LEAD_CAPTURE::name=Raj::email=raj@gmail.com::phone=not provided
+
+NEVER skip adding this tag when contact details are shared. This is the most important rule.
 
 CONTACT:
 - Email: keerthan43d@gmail.com
@@ -65,7 +73,7 @@ CONTACT:
   // Check if bot captured a lead
   if (reply.includes('LEAD_CAPTURE::')) {
     try {
-      const leadMatch = reply.match(/LEAD_CAPTURE::name=\[?([^\]:\n]+)\]?::email=\[?([^\]:\n]+)\]?::phone=\[?([^\]:\n]+)\]?/);
+      const leadMatch = reply.match(/LEAD_CAPTURE::name=([^:\n]+)::email=([^:\n]+)::phone=([^\n]+)/);
       if (leadMatch) {
         const leadData = {
           date: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
